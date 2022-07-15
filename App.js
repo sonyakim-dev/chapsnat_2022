@@ -1,65 +1,33 @@
-import React, { useState, useCallback, useEffect, Profiler } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { GiftedChat } from "react-native-gifted-chat";
-import { styleProps } from "react-native-web/dist/cjs/modules/forwardedProps";
-import { StatusBar } from "expo-status-bar";
-import {
-  collection,
-  doc,
-  getDocs,
-  setDoc,
-  updateDoc,
-  arrayUnion,
-  arrayRemove,
-  onSnapshot,
-} from "firebase/firestore";
-import db from "./firebase";
+import React from "react";
+import { StyleSheet } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import ChatScreen from "./screens/ChatScreen";
+import HomeScreen from "./screens/HomeScreen";
 
-export default function App() {
-  const [messages, setMessages] = useState([]);
+const Stack = createStackNavigator();
 
-  useEffect(() => {
-    let unsubscribeFromNewSnapshots = onSnapshot(doc(db, "chats", "myfirstchat"), (snapshot) => {
-      console.log("New Snapshot! ", snapshot.data().messages);
-      setMessages(snapshot.data().messages);
-    });
-    return function cleanupBeforeUnmounting() {
-      unsubscribeFromNewSnapshots();
-    };
-  }, []);
-
-  // UPDATED for new documentation syntax
-  const onSend = useCallback(async (messages = []) => {
-    await updateDoc(doc(db, "chats", "myfirstchat"), {
-      messages: arrayUnion(messages[0]),
-    });
-
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, messages)
-    );
-  }, []);
-
+function App() {
   return (
-    <>
-      <StatusBar style="dark" />
-      <GiftedChat
-        messages={messages}
-        onSend={(messages) => onSend(messages)}
-        showUserAvatar
-        user={{
-          _id: 1,
-          name: "Sonya",
-          avatar: require("./assets/profile.jpeg"),
-        }}
-        placeholder="start typing.."
-        renderUsernameOnMessage={true}
-        isTyping={true}
-        renderAvatarOnTop={true}
-      />
-    </>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Chat" component={ChatScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  item: {
+    padding: 10,
+    fontSize: 18,
+    height: 44,
+  },
 });
+
+export default App;
