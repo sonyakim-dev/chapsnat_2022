@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { FlatList, Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import db from "../firebase";
+import { collection, getDocs, } from "firebase/firestore";
 
 export default function HomeScreen({ navigation }) {
   const [chatList, setChatList] = useState([]);
 
   useEffect(() => {
-    let chatsRef = db.collection("chats");
-    chatsRef.get().then((querySnapshot) => {
-      let newChatList = [];
-      querySnapshot.forEach((doc) => {
-        let newChat = { ...doc.data() };
-        newChat.id = doc.id;
-        newChatList.push(newChat);
-        console.log(newChatList);
-      });
-      setChatList(newChatList);
-    });
+    const chatsRef = collection(db, "chats");
+    getDocs(chatsRef)
+      .then((querySnapshot) => {
+        let newChatList = [];
+        querySnapshot.docs.forEach((doc) => {
+          newChatList.push({ ...doc.data(), id: doc.id });
+          // console.log(newChatList);
+        });
+        setChatList(newChatList);
+      })
+      .catch((err) => {
+        console.log(err.message);
+      })
   }, []);
 
   return (
@@ -25,7 +28,7 @@ export default function HomeScreen({ navigation }) {
         data={chatList}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() => navigation.navigate("Chat")}
+            onPress={() => navigation.navigate("Chat", { chatname: item.id })}
           >
             <Text style={styles.item}>{item.id}</Text>
           </TouchableOpacity>

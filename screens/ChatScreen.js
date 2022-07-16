@@ -1,20 +1,20 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { GiftedChat } from "react-native-gifted-chat";
 import db from "../firebase";
-import firebase from "firebase/app";
-import { collection, doc, onSnapshot } from "firebase/firestore";
+import { collection, doc, onSnapshot, updateDoc, arrayUnion } from "firebase/firestore";
 
-export default function ChatScreen({ navigation }) {
+export default function ChatScreen({ navigation, route }) {
   const [messages, setMessages] = useState([]);
+  const chatRef = doc(db, "chats", route.params.chatname);
 
   useEffect(() => {
-    let unsubscribeFromNewSnapshots = db
-      .collection("chats")
-      .doc("myfirstchat")
-      .onSnapshot((snapshot) => {
+    let unsubscribeFromNewSnapshots = onSnapshot(
+      chatRef,
+      (doc) => {
         console.log("New Snapshot!");
-        setMessages(snapshot.data().messages);
-      });
+        setMessages(doc.data().messages);
+      }
+    );
 
     return function cleanupBeforeUnmounting() {
       unsubscribeFromNewSnapshots();
@@ -22,12 +22,10 @@ export default function ChatScreen({ navigation }) {
   }, []);
 
   const onSend = useCallback((messages = []) => {
-    db.collection("chats")
-      .doc("myfirstchat")
-      .update({
-        // arrayUnion appends the message to the existing array
-        messages: firebase.firestore.FieldValue.arrayUnion(messages[0]),
-      });
+    updateDoc(chatRef, {
+      // arrayUnion appends the message to the existing array
+      messages: arrayUnion(messages[0]),
+    });
     setMessages((previousMessages) =>
       GiftedChat.append(previousMessages, messages)
     );
@@ -40,10 +38,10 @@ export default function ChatScreen({ navigation }) {
       user={{
         // current "blue bubble" user
         _id: "1",
-        name: "Ashwin",
+        name: "Sonya",
         avatar: "https://placeimg.com/140/140/any",
       }}
-      inverted={true}
+      inverted={false}
       showUserAvatar={true}
       renderUsernameOnMessage={true}
     />
