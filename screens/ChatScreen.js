@@ -18,6 +18,7 @@ export default function ChatScreen({ navigation, route }) {
 
     return function cleanupBeforeUnmounting() {
       unsubscribeFromNewSnapshots();
+      console.log("I'm out"); //???
     };
   }, []);
 
